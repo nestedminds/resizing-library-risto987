@@ -1,29 +1,36 @@
 <?php
 
-class ResizeImg {
+require_once '../../vendor/autoload.php';
+
+
+class ResizeImg  {
 
     private $image;
     private $type;
     private $width;
     private $height;
-    private $resizeWith;
+    private $resizeWidth;
     private $resizeHeight;
     private $imageResize;
+    private $workshopLib;
+
 
     /**
-     * Specific type of image and original with and height
+     * Set the image witch you want to resize
      *
      * @param  $imageFile     - path to specific image
      */
     function __construct($imageFile)
     {
-        $this->getImage($imageFile); //method to check and return jpg/gif/png
+
+        $this->setImage($imageFile); //method to check and return jpg/gif/png
         $this->width = imagesx($this->image);
         $this->height = imagesy($this->image);
     }
 
-    private function getImage($imageFile)
+    private function setImage($imageFile)
     {
+
         // check the image type and get it with GD Library function
         $size = getimagesize($imageFile);
         $this->type = $size['mime'];
@@ -56,20 +63,107 @@ class ResizeImg {
     /**
      * Resizing to exact with and height using GD Library
      *
-     * @param  integer $newWith
+     * @param  integer $newWidth
      * @param  integer $newHeight
      *
      */
-    public function exactResize($newWith, $newHeight)
+    public function exactResize($newWidth, $newHeight)
     {
-        $this->resizeWith = $newWith;
+        $this->resizeWidth = $newWidth;
         $this->resizeHeight = $newHeight;
 
-        $this->imageResize = imagecreatetruecolor($this->resizeWith, $this->resizeHeight);
-        imagecopyresampled($this->imageResize, $this->image, 0, 0, 0, 0, $this->resizeWith, $this->resizeHeight,
+        $this->copy_and_resize();
+
+    }
+
+
+    /**
+     * Auto resize image according to its aspect ratio
+     *
+     * @param  integer $newWidth
+     * @param  integer $newHeight
+     *
+     */
+    public function autoResize($newWidth, $newHeight)
+    {
+        if($this->width > $this->height){
+
+            //landscape
+            $this->resizeWidth = $newWidth;
+            $this->resizeHeight = $this->calculateHeight($newWidth);
+
+        }elseif($this->width < $this->height){
+
+            //portrait
+            $this->resizeWidth = $this->calculateWidth($newHeight);
+            $this->resizeHeight = $newHeight;
+
+        }else{
+
+            //exact
+            $this->resizeWidth = $newWidth;
+            $this->resizeHeight = $newHeight;
+
+        }
+
+        $this->copy_and_resize();
+    }
+
+
+    /**
+     * Function for implementing a CROP method from Workshop-Image Library
+     *
+     */
+    public function cropImage($newWidth, $newHeight, $positionX, $positionY, $position)
+    {
+        // not working
+        $this->workshopLib = new \PHPImageWorkshop\ImageWorkshop();
+         cropInPixel($newWidth, $newHeight, $positionX, $positionY, $position);
+
+    }
+
+
+    /**
+     * Calculate width and height keeping the aspect ratio
+     *
+     * @param  integer $newWidth - Max image width
+     *
+     * @return newHeight
+     */
+    private function calculateHeight($newWidth)
+    {
+        $ratio = $this->height / $this->width;
+        $newHeight = $newWidth * $ratio;
+        return $newHeight;
+    }
+
+
+
+    /**
+     * Calculate width keeping the aspect ratio
+     *
+     * @param  integer $newHeight - Max image height
+     *
+     * @return newWidth keeping aspect ratio
+     */
+    private function calculateWidth($newHeight)
+    {
+        $ratio = $this->width / $this->height;
+        $newWidth = $newHeight * $ratio;
+        return $newWidth;
+    }
+
+
+    /**
+     * GD Library functions to copy and resize image
+     *
+     */
+    private function copy_and_resize()
+    {
+        $this->imageResize = imagecreatetruecolor($this->resizeWidth, $this->resizeHeight);
+        imagecopyresampled($this->imageResize, $this->image, 0, 0, 0, 0, $this->resizeWidth, $this->resizeHeight,
             $this->width,
             $this->height);
-
     }
 
     /**
