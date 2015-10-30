@@ -1,9 +1,7 @@
 <?php
+namespace Resize;
 
-require_once '../../vendor/autoload.php';
-
-
-class ResizeImg  {
+class ResizeImg {
 
     private $image;
     private $type;

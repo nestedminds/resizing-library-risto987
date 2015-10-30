@@ -1,5 +1,8 @@
 {
-	"require" : {
-		"sybio/image-workshop" : "*"
-	}
+  "require" : {
+    "sybio/image-workshop" : "*"
+  },
+  "autoload": {
+    "psr-4": {"Resize\\": "lib/class/"}
+  }
 }

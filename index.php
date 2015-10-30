@@ -1,6 +1,9 @@
 <?php
-require 'class/ResizeImg.php';
-//$img = new ResizeImg('img/banner.jpg');
+require "vendor/autoload.php";
+
+$img = new \Resize\ResizeImg('lib/img/banner.jpg');
+var_dump($img);
+
 //$img->exactResize(200,200);
 //$img->saveImage('img/banner-resize.jpg');
 
