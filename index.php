@@ -2,16 +2,18 @@
 require "vendor/autoload.php";
 
 $img = new \Resize\ResizeImg('lib/img/banner.jpg');
+
+$img->exactResize(600,200);
+$img->saveImage('lib/img', 'banner-exact-resize.jpg', 60);
+
+$img->autoResize(300,200);
+$img->saveImage('lib/img', 'banner-auto-resize.jpg', 60);
+
+$img->cropImage(150,150,0,0);
+$img->saveImage('lib/img', 'banner-crop.jpg', 60);
+
+
 var_dump($img);
-
-//$img->exactResize(200,200);
-//$img->saveImage('img/banner-resize.jpg');
-
-
-//$img = new ResizeImg('img/banner.jpg');
-//$img->autoResize(200,200);
-//$img->saveImage('img/new_auto-resize.gif');
-
 //print_r($img);
 ?>
 <!doctype html>

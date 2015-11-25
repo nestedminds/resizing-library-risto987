@@ -1,10 +1,10 @@
 <?php
 namespace Resize;
+use PHPImageWorkshop\ImageWorkshop;
 
 class ResizeImg {
 
     private $image;
-    private $type;
     private $width;
     private $height;
     private $resizeWidth;
@@ -20,41 +20,15 @@ class ResizeImg {
      */
     function __construct($imageFile)
     {
-
-        $this->setImage($imageFile); //method to check and return jpg/gif/png
-        $this->width = imagesx($this->image);
-        $this->height = imagesy($this->image);
+        $this->setImage($imageFile);
     }
 
     private function setImage($imageFile)
     {
-
-        // check the image type and get it with GD Library function
-        $size = getimagesize($imageFile);
-        $this->type = $size['mime'];
-
-         switch($this->type) {
-
-             case 'image/jpg':
-             case 'image/jpeg':
-                 // jpg extension
-                 $this->image = imagecreatefromjpeg($imageFile);
-                 break;
-
-             case 'image/gif':
-                 //for gif extension
-                 $this->image = imagecreatefromgif($imageFile);
-                 break;
-
-             case 'image/png':
-                 //for png extension
-                 $this->image = imagecreatefrompng($imageFile);
-                 break;
-
-             default:
-                 throw new Exception('The file in not an image, tray another file type. ');
-                 break;
-         }
+        $this->workshopLib = ImageWorkshop::initFromPath($imageFile);
+        $this->width = $this->workshopLib->getWidth();
+        $this->height = $this->workshopLib->getHeight();
+        $this->image = $this->workshopLib->getImage();
 
     }
 
@@ -71,9 +45,7 @@ class ResizeImg {
         $this->resizeHeight = $newHeight;
 
         $this->copy_and_resize();
-
     }
-
 
     /**
      * Auto resize image according to its aspect ratio
@@ -105,18 +77,23 @@ class ResizeImg {
         }
 
         $this->copy_and_resize();
+
     }
 
 
     /**
      * Function for implementing a CROP method from Workshop-Image Library
      *
+     * @param integer $newWidth - choose new Width in pixels
+     * @param integer $newHeight - choose new Height in pixels
+     * @param integer $positionX
+     * @param integer $positionY
+     * @param string $position - string LB means Left - Bottom position
      */
-    public function cropImage($newWidth, $newHeight, $positionX, $positionY, $position)
+    public function cropImage($newWidth, $newHeight, $positionX, $positionY, $position = 'LB')
     {
-        // not working
-        $this->workshopLib = new \PHPImageWorkshop\ImageWorkshop();
-         cropInPixel($newWidth, $newHeight, $positionX, $positionY, $position);
+        $imgcrop = ImageWorkshop::initFromResourceVar($this->image);
+        $imgcrop->cropInPixel($newWidth, $newHeight, $positionX, $positionY, $position );
 
     }
 
@@ -126,7 +103,7 @@ class ResizeImg {
      *
      * @param  integer $newWidth - Max image width
      *
-     * @return newHeight
+     * @return integer $newHeight
      */
     private function calculateHeight($newWidth)
     {
@@ -142,7 +119,7 @@ class ResizeImg {
      *
      * @param  integer $newHeight - Max image height
      *
-     * @return newWidth keeping aspect ratio
+     * @return integer $newWidth keeping aspect ratio
      */
     private function calculateWidth($newHeight)
     {
@@ -167,38 +144,15 @@ class ResizeImg {
     /**
      * Saving image to specific path
      *
-     * @param  String $savePath
+     * @param  String $savePath - folder to save image
+     * @param  String $imgname - name for new image
      * @param  string $quality - The quality level of image to create
      *
      */
-    public function saveImage($savePath, $quality = '100')
+    public function saveImage( $savePath, $imgname, $quality = '100' )
     {
-        switch($this->type){
-
-            case 'image/jpg':
-            case 'image/jpeg':
-
-                if(imagetypes() & IMG_JPG){
-                    imagejpeg($this->imageResize, $savePath, $quality);
-                }
-                break;
-
-            case 'image/gif':
-
-                if(imagetypes() & IMG_GIF){
-                    imagegif($this->imageResize, $savePath, $quality);
-                }
-                break;
-
-            case 'image/png':
-
-                $pngScaleQuality = 9 - round(($quality/100) * 9);
-                if (imagetypes() & IMG_PNG){
-                    imagepng($this->imageResize, $savePath, $pngScaleQuality);
-                }
-                break;
-        }
-        imagedestroy($this->imageResize);
+        $imgsave = ImageWorkshop::initFromResourceVar($this->imageResize);
+        $imgsave->save( $savePath, $imgname, $quality );
     }
 
 }
